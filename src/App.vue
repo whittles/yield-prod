@@ -97,7 +97,7 @@
 
     <!-- ── Footer ─────────────────────────────────────────────── -->
     <footer class="no-print border-t border-border mt-8 py-4 text-center text-xs text-text-muted">
-      © 2026
+      © {{ new Date().getFullYear() }}
       <a href="https://althoffwoodshop.com" target="_blank" rel="noopener"
          class="hover:text-text-primary transition-colors mx-1">
         Althoff Woodshop
