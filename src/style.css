@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Assistant', system-ui, sans-serif;
+  background-color: #f5f4f0;
+  color: #121212;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Input resets for consistent appearance ──────────────── */
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* ── Print styles ─────────────────────────────────────────── */
+@media print {
+  /* Hide all interactive/nav chrome */
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+
+  /* Reset page for shop use */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    background: white !important;
+    color: #1a1a1a !important;
+    font-size: 11pt;
+    font-family: system-ui, sans-serif;
+  }
+
+  /* Remove card shadows/borders, flatten surfaces */
+  .bg-surface, .bg-bg, .bg-background { background: white !important; }
+  .border, .border-border { border-color: #ccc !important; }
+
+  /* Make sure SVGs print at full width */
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  /* Keep instruction steps together */
+  .print-step { page-break-inside: avoid; }
+
+  /* Table styling for print */
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4pt 6pt; font-size: 10pt; }
+  thead { background: #f0f0f0 !important; }
+
+  /* Monospace for dimensions */
+  .font-mono { font-family: 'Courier New', monospace; }
+
+  /* Text colors for print */
+  .text-text-muted { color: #555 !important; }
+  .text-text-primary { color: #1a1a1a !important; }
+  .text-success { color: #166534 !important; }
+  .text-warning { color: #92400e !important; }
+  .text-danger { color: #991b1b !important; }
+  .text-accent { color: #3730a3 !important; }
+
+  /* Page break helpers */
+  .print-break-before { page-break-before: always; }
+  .print-no-break { page-break-inside: avoid; }
+}
+
+.print-only { display: none; }
