@@ -106,6 +106,11 @@
       Board Yield Calculator
       <span class="mx-2">·</span>
       v{{ version }}
+      <span class="mx-2">·</span>
+      <a href="https://althoffwoodshop.com/pages/contact" target="_blank" rel="noopener"
+         class="hover:text-text-primary transition-colors">
+        Feedback
+      </a>
     </footer>
 
   </div>
