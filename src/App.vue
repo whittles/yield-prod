@@ -82,6 +82,17 @@
           >
             Resaw Planner
           </button>
+          <button
+            @click="router.push('/toolbox')"
+            :class="[
+              'px-3 sm:px-5 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
+              activeTab === 'toolbox'
+                ? 'border-white text-white'
+                : 'border-transparent text-gray-400 hover:text-white hover:border-white/40'
+            ]"
+          >
+            Tool Box
+          </button>
         </div>
       </div>
     </header>
@@ -131,6 +142,7 @@ const version = __APP_VERSION__
 const activeTab = computed(() => {
   if (route.path === '/resaw') return 'resaw'
   if (route.path === '/results') return 'results'
+  if (route.path === '/toolbox') return 'toolbox'
   return 'input'
 })
 

@@ -427,14 +427,24 @@
           <div class="text-2xl font-bold text-text-primary">{{ r.roughCrosscut.blanksTotal }}</div>
           <div class="text-xs text-text-muted mt-1">Total blanks</div>
         </div>
-        <div class="bg-surface border border-border rounded-lg p-4 text-center">
-          <div class="text-2xl font-bold text-text-primary">{{ r.slabs.slabsPerBlank }}</div>
-          <div class="text-xs text-text-muted mt-1">Slabs per blank</div>
-        </div>
-        <div class="bg-surface border border-border rounded-lg p-4 text-center">
-          <div class="text-2xl font-bold text-text-primary">{{ r.summary.slabsTotal }}</div>
-          <div class="text-xs text-text-muted mt-1">Total slabs</div>
-        </div>
+        <!-- Per-group slab counts when multiple runs -->
+        <template v-if="r.resawGroups && r.resawGroups.length > 1">
+          <div v-for="(g, gi) in r.resawGroups" :key="'sc-'+gi"
+               class="bg-surface border border-border rounded-lg p-4 text-center">
+            <div class="text-2xl font-bold text-text-primary">{{ g.slabsPerBlank }}</div>
+            <div class="text-xs text-text-muted mt-1">Slabs/blank ({{ fmtIn(g.panelDepth) }}" run)</div>
+          </div>
+        </template>
+        <template v-else>
+          <div class="bg-surface border border-border rounded-lg p-4 text-center">
+            <div class="text-2xl font-bold text-text-primary">{{ r.slabs.slabsPerBlank }}</div>
+            <div class="text-xs text-text-muted mt-1">Slabs per blank</div>
+          </div>
+          <div class="bg-surface border border-border rounded-lg p-4 text-center">
+            <div class="text-2xl font-bold text-text-primary">{{ r.summary.slabsTotal }}</div>
+            <div class="text-xs text-text-muted mt-1">Total slabs</div>
+          </div>
+        </template>
         <div
           v-for="sr in r.stripResults.slice(0, 2)"
           :key="sr.id"
@@ -450,6 +460,50 @@
         </div>
       </div>
 
+
+      <!-- Mixed Strip Optimization -->
+      <div v-if="r.mixedOptimization && r.stripResults.length > 1"
+           class="no-print bg-surface border border-border rounded-lg p-5">
+        <h3 class="text-sm font-semibold text-text-primary mb-1">Mixed Strip Optimization</h3>
+        <p class="text-xs text-text-muted mb-4">Best combination of SKUs per panel to minimize waste</p>
+
+        <!-- Comparison: pure vs mixed -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="bg-bg border border-border rounded p-3">
+            <div class="text-xs text-text-muted mb-1">{{ r.stripResults[0]?.name }} only</div>
+            <div class="text-lg font-bold text-text-primary">{{ r.stripResults[0]?.stripsPerPanel }} strips</div>
+            <div class="text-xs text-text-muted">{{ r.stripResults[0]?.widthWastePct }}% waste</div>
+          </div>
+          <div class="bg-bg border border-accent/30 rounded p-3">
+            <div class="text-xs text-text-muted mb-1">Optimized mix</div>
+            <div class="text-sm font-bold text-accent leading-snug">
+              {{ r.mixedOptimization.mix.map(m => m.qty + '\u00d7 ' + m.sku.name).join(', ') }}
+            </div>
+            <div class="text-xs mt-1" :class="r.mixedOptimization.wastePct < r.stripResults[0]?.widthWastePct ? 'text-green-400' : 'text-text-muted'">
+              {{ r.mixedOptimization.wastePct }}% waste
+              <span v-if="r.mixedOptimization.wastePct < r.stripResults[0]?.widthWastePct" class="text-green-400">
+                &#8595; {{ r.stripResults[0]?.widthWastePct - r.mixedOptimization.wastePct }}% better
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total strips from mixed approach -->
+        <div class="text-xs text-text-muted mb-2">Using mixed approach across {{ r.summary.slabsTotal }} slabs:</div>
+        <div class="space-y-1">
+          <div v-for="m in r.mixedOptimization.mix" :key="m.sku.id" class="flex items-center justify-between text-sm">
+            <span class="text-text-muted">{{ m.sku.name }}</span>
+            <span class="font-mono font-semibold text-text-primary">
+              {{ m.qty }} &times; {{ r.summary.slabsTotal }} slabs = {{ m.qty * r.summary.slabsTotal }} strips
+            </span>
+          </div>
+        </div>
+
+        <p class="text-xs text-text-muted mt-3 italic">
+          Note: Mixed approach sets the rip fence differently for each strip type in the same panel.
+          Rip all of one width first before adjusting the fence.
+        </p>
+      </div>
 
       <!-- Step 1: Rough Crosscut SVG -->
       <div class="bg-surface border border-border rounded-lg p-5 print-no-break">
@@ -470,6 +524,25 @@
           <rect v-if="roughCutWasteW > 0" :x="roughCutWasteX" y="15" :width="roughCutWasteW" height="50" fill="#aaa" opacity="0.4"/>
           <text v-if="roughCutWasteW > 15" :x="roughCutWasteX + roughCutWasteW/2" y="44" text-anchor="middle" font-size="8" fill="#666">waste</text>
         </svg>
+      </div>
+
+      <!-- Warning if multiple resaw groups -->
+      <div v-if="r.resawGroups && r.resawGroups.length > 1"
+           class="bg-warning/10 border border-warning/40 rounded-lg px-4 py-3 text-sm text-warning no-print">
+        ⚠ Multiple panel depths detected — these are <strong>separate resaw runs</strong>.
+        Each run uses a different fence setting and produces different slab thicknesses.
+      </div>
+
+      <!-- Loop over resaw groups (one cross-section + strip layouts per group) -->
+      <template v-for="(group, gi) in (r.resawGroups ?? [{ ...r.slabs, stripResults: r.stripResults, resawSequence: r.resawSequence, panelDepth: r.input.resawSettings.panelTarget, extraPerSlab: r.slabs.extraPerSlab, nominalSlabThickness: r.slabs.nominalSlabThickness }])" :key="'group-' + gi">
+
+      <!-- Group header (only shown when multiple groups) -->
+      <div v-if="r.resawGroups && r.resawGroups.length > 1"
+           class="bg-surface border border-accent/40 rounded-lg px-4 py-3 flex flex-wrap items-center gap-3">
+        <span class="text-sm font-bold text-accent">Run {{ gi + 1 }}:</span>
+        <span class="text-sm text-text-primary">Panel depth {{ fmtIn(group.panelDepth) }}" target → fence {{ group.slabThickness?.toFixed(4) }}"</span>
+        <span class="text-xs text-text-muted">· {{ group.slabsPerBlank }} slabs/blank</span>
+        <span class="text-xs text-text-muted">· SKUs: {{ group.stripResults?.map(s => s.name).join(', ') }}</span>
       </div>
 
       <!-- Cross-section SVG (board end view) -->
@@ -508,7 +581,7 @@
           </text>
 
           <!-- Slab zones -->
-          <g v-for="(slab, i) in slabZones" :key="'slab-' + i">
+          <g v-for="(slab, i) in getSlabZones(group)" :key="'slab-' + i">
             <rect
               :x="70"
               :y="slab.y"
@@ -526,11 +599,11 @@
               font-size="9"
               fill="#3d2000"
             >
-              Slab {{ i + 1 }}: {{ fmtIn(r.slabs.slabThickness) }}" fence → {{ fmtIn(r.input.resawSettings.panelTarget) }}" panel
+              Slab {{ i + 1 }}: {{ fmtIn(group.slabThickness) }}" fence → {{ fmtIn(group.panelDepth) }}" panel
             </text>
             <!-- Kerf after slab (not after last) -->
             <rect
-              v-if="i < slabZones.length - 1"
+              v-if="i < getSlabZones(group).length - 1"
               :x="70"
               :y="slab.y + slab.h"
               width="350"
@@ -542,18 +615,18 @@
 
           <!-- Offcut zone -->
           <rect
-            v-if="offcutH > 0"
+            v-if="getOffcutH(group) > 0"
             :x="70"
-            :y="offcutY"
+            :y="getOffcutY(group)"
             width="350"
-            :height="offcutH"
+            :height="getOffcutH(group)"
             fill="#aaa"
             opacity="0.4"
             stroke="#888"
             stroke-width="0.5"
           />
-          <text v-if="offcutH > 6" x="245" :y="offcutY + offcutH/2 + 4" text-anchor="middle" font-size="9" fill="#555">
-            Offcut {{ fmtIn(r.slabs.thicknessWaste) }}
+          <text v-if="getOffcutH(group) > 6" x="245" :y="getOffcutY(group) + getOffcutH(group)/2 + 4" text-anchor="middle" font-size="9" fill="#555">
+            Offcut {{ fmtIn(group.thicknessWaste ?? 0) }}
           </text>
 
           <!-- Dimension line: left side (usable thickness) -->
@@ -584,79 +657,29 @@
         </svg>
       </div>
 
-      <!-- Per-slab strip layout SVG -->
+      </template> <!-- end group loop -->
+
+      <!-- Single strip layout SVG — rip is the same for all SKUs (always 0.150" face) -->
       <div class="bg-surface border border-border rounded-lg p-5">
-        <h3 class="text-sm font-semibold text-text-primary mb-1">Panel Strip Layout (face view — one slab)</h3>
+        <h3 class="text-sm font-semibold text-text-primary mb-1">Panel Strip Layout (face view — applies to all SKUs)</h3>
         <div class="flex flex-wrap gap-4 text-xs text-text-muted mb-3">
           <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-yellow-600 opacity-80"></span> Strip (rough rip face)</span>
           <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-gray-400 opacity-80"></span> Kerf / waste</span>
         </div>
-        <p class="text-xs text-text-muted mb-3">Showing {{ r.stripResults[0]?.name ?? 'first SKU' }} rip layout. Width = {{ fmtIn(r.stock.usableWidth) }}", Length = {{ r.stripResults[0]?.length }}"</p>
-
-        <svg
-          viewBox="0 0 460 120"
-          class="w-full max-w-2xl mx-auto"
-          style="font-family: monospace;"
-        >
-          <!-- Panel rectangle: 420px wide × 80px tall -->
+        <p class="text-xs text-text-muted mb-3">
+          Table saw rip: {{ fmtIn(r.stripResults[0]?.roughWidth) }}" fence · {{ r.stripResults[0]?.stripsPerPanel }} strips per panel · Panel width = {{ fmtIn(r.stock.usableWidth) }}"
+        </p>
+        <svg viewBox="0 0 460 120" class="w-full max-w-2xl mx-auto" style="font-family: monospace;">
           <rect x="20" y="20" width="420" height="80" fill="#e8d5b0" stroke="#8B6914" stroke-width="1.5"/>
-
-          <!-- Strip zones for first SKU -->
-          <g v-for="(strip, i) in stripZonesFirst" :key="'strip-' + i">
-            <!-- Kerf before strip (not before first) -->
-            <rect
-              v-if="i > 0"
-              :x="strip.x - stripKerfW"
-              y="20"
-              :width="stripKerfW"
-              height="80"
-              fill="#555"
-              opacity="0.5"
-            />
-            <rect
-              :x="strip.x"
-              y="20"
-              :width="strip.w"
-              height="80"
-              :fill="i % 2 === 0 ? '#d4a84b' : '#e8c470'"
-              opacity="0.8"
-              stroke="#8B6914"
-              stroke-width="0.3"
-            />
-            <text
-              v-if="strip.w > 12"
-              :x="strip.x + strip.w/2"
-              y="64"
-              text-anchor="middle"
-              font-size="7"
-              fill="#3d2000"
-            >
-              {{ i + 1 }}
-            </text>
+          <g v-for="(strip, i) in getStripZones(r.stripResults[0])" :key="'strip-' + i">
+            <rect v-if="i > 0" :x="strip.x - getStripKerfW(r.stripResults[0])" y="20" :width="getStripKerfW(r.stripResults[0])" height="80" fill="#555" opacity="0.5"/>
+            <rect :x="strip.x" y="20" :width="strip.w" height="80" :fill="i % 2 === 0 ? '#d4a84b' : '#e8c470'" opacity="0.8" stroke="#8B6914" stroke-width="0.3"/>
+            <text v-if="strip.w > 12" :x="strip.x + strip.w/2" y="64" text-anchor="middle" font-size="7" fill="#3d2000">{{ i + 1 }}</text>
           </g>
-
-          <!-- Waste zone at right -->
-          <rect
-            v-if="stripWasteW > 0"
-            :x="20 + 420 - stripWasteW"
-            y="20"
-            :width="stripWasteW"
-            height="80"
-            fill="#aaa"
-            opacity="0.4"
-          />
-          <text
-            v-if="stripWasteW > 10"
-            :x="20 + 420 - stripWasteW/2"
-            y="64"
-            text-anchor="middle"
-            font-size="7"
-            fill="#555"
-          >W</text>
-
-          <!-- Labels -->
+          <rect v-if="getStripWasteW(r.stripResults[0]) > 0" :x="20 + 420 - getStripWasteW(r.stripResults[0])" y="20" :width="getStripWasteW(r.stripResults[0])" height="80" fill="#aaa" opacity="0.4"/>
+          <text v-if="getStripWasteW(r.stripResults[0]) > 10" :x="20 + 420 - getStripWasteW(r.stripResults[0])/2" y="64" text-anchor="middle" font-size="7" fill="#555">W</text>
           <text x="230" y="14" text-anchor="middle" font-size="9" fill="#555">
-            {{ r.stripResults[0]?.stripsPerPanel || 0 }} strips × {{ fmtIn(r.stripResults[0]?.roughWidth || 0) }}" rough rip ({{ r.stripResults[0]?.name }})
+            {{ r.stripResults[0]?.stripsPerPanel }} strips × {{ fmtIn(r.stripResults[0]?.roughWidth) }}" rough rip (same fence for all SKUs)
           </text>
           <text x="20" y="115" font-size="8" fill="#666">← {{ fmtIn(r.stock.usableWidth) }}" panel width →</text>
         </svg>
@@ -695,25 +718,18 @@
             </div>
           </div>
 
-          <!-- Step 3: Resaw -->
+          <!-- Step 3: Resaw — one sub-step per group -->
           <div class="print-step">
             <div class="font-semibold text-text-primary">Step 3 — Resaw on bandsaw</div>
-            <div class="text-text-muted mt-1 ml-4">
-              Fence setting: {{ r.slabs.slabThickness.toFixed(4) }}" — jointed face against fence<br/>
-              <span v-if="r.slabs.extraPerSlab > 0.001" class="text-success">
-                ✓ Offcut redistributed: +{{ r.slabs.extraPerSlab.toFixed(4) }}" per slab (nominal was {{ r.slabs.nominalSlabThickness.toFixed(4) }}", extra absorbed by drum sander)
+            <div v-for="(g, gi) in (r.resawGroups ?? [r.slabs])" :key="'rs-'+gi" class="text-text-muted mt-2 ml-4">
+              <div v-if="r.resawGroups && r.resawGroups.length > 1" class="font-medium text-text-primary mb-0.5">Run {{ gi + 1 }} — {{ fmtIn(g.panelDepth) }}" depth panels:</div>
+              Fence setting: {{ (g.slabThickness ?? r.slabs.slabThickness).toFixed(4) }}" — jointed face against fence<br/>
+              <span v-if="(g.extraPerSlab ?? 0) > 0.001" class="text-success">
+                ✓ Offcut redistributed: +{{ (g.extraPerSlab ?? 0).toFixed(4) }}" per slab (nominal {{ (g.nominalSlabThickness ?? g.slabThickness ?? 0).toFixed(4) }}", extra absorbed by drum sander)
               </span><br/>
               Kerf: {{ fmtIn(r.input.resawSettings.kerf) }}" per cut<br/>
-              <div v-for="seq in r.resawSequence" :key="seq.cutNumber" class="mt-0.5">
-                Cut {{ seq.cutNumber }}: {{ fmtIn(r.slabs.slabThickness) }}" fence → Slab {{ seq.slabNumber }}
-              </div>
-              <div class="mt-1" v-if="r.slabs.thicknessWaste > 0.01">
-                <span v-if="r.slabs.thicknessWaste >= r.slabs.slabThickness * 0.5" class="text-warning">
-                  ⚠ Offcut {{ r.slabs.thicknessWaste.toFixed(3) }}" — consider adjusting fence to distribute this across slabs for blade drift buffer
-                </span>
-                <span v-else>
-                  Offcut: {{ r.slabs.thicknessWaste.toFixed(3) }}" (insufficient for another slab)
-                </span>
+              <div v-for="seq in (g.resawSequence ?? r.resawSequence)" :key="seq.cutNumber" class="mt-0.5">
+                Cut {{ seq.cutNumber }}: {{ fmtIn(g.slabThickness ?? r.slabs.slabThickness) }}" fence → Slab {{ seq.slabNumber }}
               </div>
             </div>
           </div>
@@ -722,8 +738,15 @@
           <div class="print-step">
             <div class="font-semibold text-text-primary">Step 4 — Drum sand to panel depth</div>
             <div class="text-text-muted mt-1 ml-4">
-              Target depth: {{ fmtIn(r.input.resawSettings.panelTarget) }}" ± 0.003" (this becomes the strip depth in the kumiko frame)<br/>
-              Sand {{ r.slabs.slabsPerBlank }} slabs per blank ({{ r.summary.slabsTotal }} total across all blanks)
+              <template v-if="r.resawGroups && r.resawGroups.length > 1">
+                <div v-for="(g, gi) in r.resawGroups" :key="'sd-'+gi" class="mb-1">
+                  Run {{ gi + 1 }}: target {{ fmtIn(g.panelDepth) }}" ± 0.003" · {{ g.slabsPerBlank }} slabs/blank · {{ g.slabsPerBlank * r.roughCrosscut.blanksTotal * r.stock.qty }} total slabs
+                </div>
+              </template>
+              <template v-else>
+                Target depth: {{ fmtIn(r.input.resawSettings.panelTarget) }}" ± 0.003" (strip depth in kumiko frame)<br/>
+                Sand {{ r.slabs.slabsPerBlank }} slabs per blank ({{ r.summary.slabsTotal }} total across all blanks)
+              </template>
             </div>
           </div>
 
@@ -749,6 +772,12 @@
               Ripping sets the strip face dimension (visible front of kumiko strip):<br/>
               <div v-for="sr in r.stripResults" :key="sr.id" class="mt-0.5">
                 {{ sr.name }}: fence {{ fmtIn(sr.roughWidth) }}" rough face · {{ sr.stripsPerPanel }} strips/panel · {{ sr.stripsPerBoard }}/board · {{ sr.totalStrips }} total
+              </div>
+              <div v-if="r.mixedOptimization && r.mixedOptimization.mix.length > 1" class="mt-2 text-yellow-400 text-xs">
+                ★ Mixed panel: rip all strips of one width before changing fence.
+                <div v-for="m in r.mixedOptimization.mix" :key="m.sku.id" class="ml-2">
+                  {{ m.qty }}&times; {{ m.sku.name }}: fence {{ fmtIn(m.sku.roughWidth) }}"
+                </div>
               </div>
             </div>
           </div>
@@ -920,20 +949,17 @@ const condWasteH = computed(() => {
   return (condLoss / nominal) * SVG_BOARD_H
 })
 
-const slabZones = computed(() => {
+// slabZones accepts an optional group; falls back to r.slabs for single-group case
+function getSlabZones(group) {
   if (!r.value) return []
-  const nominal = r.value.input.stock.thickness
   const usable = r.value.stock.usableThickness
   const condLossH = condWasteH.value
   const usableH = SVG_BOARD_H - condLossH
-
-  const slabT = r.value.slabs.slabThickness
+  const slabT = group?.slabThickness ?? r.value.slabs.slabThickness
   const kerfT = r.value.input.resawSettings.kerf
-  const n = r.value.slabs.slabsPerBoard
-
+  const n = group?.slabsPerBlank ?? r.value.slabs.slabsPerBoard
   const slabPx = (slabT / usable) * usableH
   const kerfPx = (kerfT / usable) * usableH
-
   const zones = []
   let cursor = SVG_BOARD_Y + condLossH
   for (let i = 0; i < n; i++) {
@@ -942,27 +968,32 @@ const slabZones = computed(() => {
     if (i < n - 1) cursor += kerfPx
   }
   return zones
-})
+}
+// Keep backward compat computed for template references not yet migrated
+const slabZones = computed(() => getSlabZones(r.value?.resawGroups?.[0] ?? null))
 
-const kerfH = computed(() => {
+function getKerfH(group) {
   if (!r.value) return 0
-  const nominal = r.value.input.stock.thickness
   const usable = r.value.stock.usableThickness
   const condLossH = condWasteH.value
   const usableH = SVG_BOARD_H - condLossH
   return (r.value.input.resawSettings.kerf / usable) * usableH
-})
+}
+const kerfH = computed(() => getKerfH(null))
 
-const offcutY = computed(() => {
-  if (!r.value || slabZones.value.length === 0) return 0
-  const last = slabZones.value[slabZones.value.length - 1]
+function getOffcutY(group) {
+  const zones = getSlabZones(group)
+  if (!zones.length) return 0
+  const last = zones[zones.length - 1]
   return last.y + last.h
-})
-
-const offcutH = computed(() => {
+}
+function getOffcutH(group) {
   if (!r.value) return 0
-  return (SVG_BOARD_Y + SVG_BOARD_H) - offcutY.value
-})
+  return (SVG_BOARD_Y + SVG_BOARD_H) - getOffcutY(group)
+}
+// backward compat
+const offcutY = computed(() => getOffcutY(r.value?.resawGroups?.[0] ?? null))
+const offcutH = computed(() => getOffcutH(r.value?.resawGroups?.[0] ?? null))
 
 // Rough crosscut SVG computeds
 const SVG_ROUGH_W = 520
@@ -1021,19 +1052,35 @@ const stripZonesFirst = computed(() => {
   return zones
 })
 
-const stripKerfW = computed(() => {
-  if (!r.value || !r.value.stripResults.length) return 0
-  const sr = r.value.stripResults[0]
-  return (sr.tableKerf / r.value.stock.usableWidth) * SVG_STRIP_W
-})
-
-const stripWasteW = computed(() => {
-  if (!r.value || !r.value.stripResults.length) return 0
-  const sr = r.value.stripResults[0]
+// Strip layout functions — accept any sr object
+function getStripZones(sr) {
+  if (!r.value || !sr) return []
   const usableW = r.value.stock.usableWidth
-  if (!usableW || usableW <= 0) return 0
+  if (!usableW || usableW <= 0) return []
+  const stripPx = (sr.roughWidth / usableW) * SVG_STRIP_W
+  const kerfPx = (sr.tableKerf / usableW) * SVG_STRIP_W
+  const zones = []
+  let cursor = 20
+  for (let i = 0; i < sr.stripsPerPanel; i++) {
+    if (i > 0) cursor += kerfPx
+    zones.push({ x: cursor, w: stripPx })
+    cursor += stripPx
+  }
+  return zones
+}
+function getStripKerfW(sr) {
+  if (!r.value || !sr) return 0
+  return (sr.tableKerf / r.value.stock.usableWidth) * SVG_STRIP_W
+}
+function getStripWasteW(sr) {
+  if (!r.value || !sr) return 0
+  const usableW = r.value.stock.usableWidth
+  if (!usableW) return 0
   return Math.max(0, (sr.widthWaste / usableW) * SVG_STRIP_W)
-})
+}
+// Keep old computeds for backward compat
+const stripKerfW = computed(() => getStripKerfW(r.value?.stripResults?.[0]))
+const stripWasteW = computed(() => getStripWasteW(r.value?.stripResults?.[0]))
 
 function printInstructions() {
   window.print()

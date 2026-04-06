@@ -135,10 +135,10 @@ export const useProjectStore = defineStore('project', () => {
   })
 
   const defaultSkus = [
-    { id: 'sku1', name: 'Standard 12"', roughWidthStr: '0.150', planeAllowance: 0.010, sanderAllowance: 0.010, finalWidthStr: '0.130', length: 12, tableKerfStr: '1/8' },
-    { id: 'sku2', name: 'Wide 12"',     roughWidthStr: '0.800', planeAllowance: 0.025, sanderAllowance: 0.025, finalWidthStr: '0.750', length: 12, tableKerfStr: '1/8' },
-    { id: 'sku3', name: 'Standard 24"', roughWidthStr: '0.150', planeAllowance: 0.010, sanderAllowance: 0.010, finalWidthStr: '0.130', length: 24, tableKerfStr: '1/8' },
-    { id: 'sku4', name: 'Wide 24"',     roughWidthStr: '0.800', planeAllowance: 0.025, sanderAllowance: 0.025, finalWidthStr: '0.750', length: 24, tableKerfStr: '1/8' },
+    { id: 'sku1', name: 'Standard 12"', roughWidthStr: '0.150', planeAllowance: 0.010, sanderAllowance: 0.010, finalWidthStr: '0.130', length: 12, tableKerfStr: '1/8', panelDepthStr: '3/8' },
+    { id: 'sku2', name: 'Wide 12"',     roughWidthStr: '0.150', planeAllowance: 0.010, sanderAllowance: 0.010, finalWidthStr: '0.130', length: 12, tableKerfStr: '1/8', panelDepthStr: '3/4' },
+    { id: 'sku3', name: 'Standard 24"', roughWidthStr: '0.150', planeAllowance: 0.010, sanderAllowance: 0.010, finalWidthStr: '0.130', length: 24, tableKerfStr: '1/8', panelDepthStr: '3/8' },
+    { id: 'sku4', name: 'Wide 24"',     roughWidthStr: '0.150', planeAllowance: 0.010, sanderAllowance: 0.010, finalWidthStr: '0.130', length: 24, tableKerfStr: '1/8', panelDepthStr: '3/4' },
   ]
 
   const resawSkus = ref([...defaultSkus])
@@ -155,6 +155,7 @@ export const useProjectStore = defineStore('project', () => {
       finalWidthStr: '0.130',
       length: 12,
       tableKerfStr: '1/8',
+      panelDepthStr: '3/8',
     })
   }
 
@@ -199,10 +200,11 @@ export const useProjectStore = defineStore('project', () => {
       },
       stripSettings: resawSkus.value.map(s => ({
         ...s,
-        roughWidth: parseFraction(s.roughWidthStr),
-        finalWidth: parseFraction(s.finalWidthStr),
-        tableKerf:  parseFraction(s.tableKerfStr),
-        depth:      parseFraction(resawSettings.value.panelTargetStr),
+        roughWidth:  parseFraction(s.roughWidthStr),
+        finalWidth:  parseFraction(s.finalWidthStr),
+        tableKerf:   parseFraction(s.tableKerfStr),
+        panelDepth:  parseFraction(s.panelDepthStr ?? resawSettings.value.panelTargetStr),
+        depth:       parseFraction(s.panelDepthStr ?? resawSettings.value.panelTargetStr),
       })),
     })
     } catch(e) {
