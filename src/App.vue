@@ -5,7 +5,8 @@
     <header class="bg-header text-white no-print">
       <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
         <!-- Brand -->
-        <div class="flex items-center gap-3">
+        <a href="https://althoffwoodshop.com" target="_blank" rel="noopener"
+           class="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img
             src="/logo.png"
             alt="Althoff Woodshop logo"
@@ -15,7 +16,7 @@
             <div class="font-semibold text-base leading-tight tracking-wide">Althoff Woodshop</div>
             <div class="text-xs text-gray-400 leading-tight">Board Yield Calculator</div>
           </div>
-        </div>
+        </a>
 
         <!-- Actions -->
         <div class="flex items-center gap-2">
@@ -82,17 +83,7 @@
           >
             Resaw Planner
           </button>
-          <button
-            @click="router.push('/toolbox')"
-            :class="[
-              'px-3 sm:px-5 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
-              activeTab === 'toolbox'
-                ? 'border-white text-white'
-                : 'border-transparent text-gray-400 hover:text-white hover:border-white/40'
-            ]"
-          >
-            Tool Box
-          </button>
+
         </div>
       </div>
     </header>
