@@ -36,9 +36,8 @@ export const useProjectStore = defineStore('project', () => {
     { id: 'p2', label: 'Rail', lengthStr: '36', widthStr: '3',     thicknessStr: '3/4',   qty: 2 },
   ])
 
-  const results  = ref(null)
-  const activeTab = ref('input') // 'input' | 'results'
-  const nextId   = ref(10)
+  const results = ref(null)
+  const nextId  = ref(10)
 
   // ─── Stock management ──────────────────────────────────────────────────────
   function addStock() {
@@ -89,8 +88,7 @@ export const useProjectStore = defineStore('project', () => {
       thickness: parseFraction(p.thicknessStr),
     }))
 
-    results.value  = solve({ stock: parsedStock, parts: parsedParts, settings: settings.value })
-    activeTab.value = 'results'
+    results.value = solve({ stock: parsedStock, parts: parsedParts, settings: settings.value })
   }
 
   // ─── Import / Export ────────────────────────────────────────────────────────
@@ -110,7 +108,6 @@ export const useProjectStore = defineStore('project', () => {
     }
     results.value      = null
     resawResults.value = null
-    activeTab.value    = 'input'
   }
 
   // ─── Resaw Planner ─────────────────────────────────────────────────────────
@@ -218,7 +215,7 @@ export const useProjectStore = defineStore('project', () => {
   function removeBlankLength(i) { if (crosscutSettings.value.blankLengths.length > 1) crosscutSettings.value.blankLengths.splice(i, 1) }
 
   return {
-    settings, stock, parts, results, activeTab,
+    settings, stock, parts, results,
     addStock, removeStock, addPart, removePart,
     calculate, loadProject,
     // Resaw Planner
