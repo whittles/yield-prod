@@ -69,6 +69,22 @@ textarea {
   /* Page break helpers */
   .print-break-before { page-break-before: always; }
   .print-no-break { page-break-inside: avoid; }
+
+  /* Page margin boxes for footer on every page */
+  @page {
+    margin-bottom: 36pt;
+    @bottom-center {
+      content: 'www.althoffwoodshop.com';
+      font-size: 8pt;
+      color: #888;
+      border-top: 1px solid #ddd;
+      padding-top: 4pt;
+      font-family: system-ui, sans-serif;
+    }
+  }
+
+  /* Hide the in-flow footer element — @page handles it now */
+  .print-footer { display: none !important; }
 }
 
 .print-only { display: none; }
