@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { solve } from '@/solver'
+import { solve, solveOptimized } from '@/solver'
 import { parseFraction } from '@/utils/fractions'
 import { solveResaw } from '@/resawSolver'
 
@@ -88,7 +88,7 @@ export const useProjectStore = defineStore('project', () => {
       thickness: parseFraction(p.thicknessStr),
     }))
 
-    results.value = solve({ stock: parsedStock, parts: parsedParts, settings: settings.value })
+    results.value = solveOptimized({ stock: parsedStock, parts: parsedParts, settings: settings.value })
   }
 
   // ─── Import / Export ────────────────────────────────────────────────────────

@@ -187,3 +187,112 @@ export function solve(input) {
     },
   };
 }
+
+// ─── Optimized Solver ─────────────────────────────────────────────────────────
+
+/**
+ * Tries multiple board orderings and returns the result with the lowest score.
+ * solve() is left completely unchanged — this is a pure wrapper.
+ *
+ * @param {Object} input - { stock[], parts[], settings }
+ * @returns {Object} - Same shape as solve(), with extra .optimized and .orderingsTried
+ */
+export function solveOptimized(input) {
+  const { stock } = input;
+
+  const candidates = generateCandidateOrderings(stock);
+
+  let best = null;
+  let bestScore = Infinity;
+  let orderingsTried = 0;
+
+  for (const orderedStock of candidates) {
+    const result = solve({ ...input, stock: orderedStock });
+    const score = scoreResult(result);
+    orderingsTried++;
+    if (score < bestScore) {
+      bestScore = score;
+      best = result;
+    }
+  }
+
+  best.optimized = true;
+  best.orderingsTried = orderingsTried;
+  best.summary.optimized = true;
+  best.summary.orderingsTried = orderingsTried;
+  return best;
+}
+
+function generateCandidateOrderings(stock) {
+  const candidates = [];
+
+  // Original order
+  candidates.push([...stock]);
+
+  // Sort by volume descending
+  candidates.push([...stock].sort((a, b) =>
+    (b.length * b.width * b.thickness) - (a.length * a.width * a.thickness)));
+
+  // Sort by volume ascending
+  candidates.push([...stock].sort((a, b) =>
+    (a.length * a.width * a.thickness) - (b.length * b.width * b.thickness)));
+
+  // Sort by width descending
+  candidates.push([...stock].sort((a, b) => b.width - a.width));
+
+  // Sort by width ascending
+  candidates.push([...stock].sort((a, b) => a.width - b.width));
+
+  if (stock.length <= 8) {
+    // Full permutation search
+    const perms = permutations(stock);
+    for (const p of perms) candidates.push(p);
+  } else {
+    // Random shuffles
+    for (let i = 0; i < 500; i++) {
+      candidates.push(shuffle([...stock]));
+    }
+  }
+
+  // Deduplicate by joining ids
+  const seen = new Set();
+  return candidates.filter(c => {
+    const key = c.map(s => s.id).join(',');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function scoreResult(result) {
+  // Primary: unresolved parts (lower is better)
+  const unresolved = result.summary.unresolvedParts * 1000000;
+  // Secondary: average waste % across used boards
+  const usedBoards = result.results.filter(r => r.cuts.length > 0);
+  const avgWaste = usedBoards.length > 0
+    ? usedBoards.reduce((sum, r) => sum + r.wastePercent, 0) / usedBoards.length
+    : 100;
+  // Tertiary: number of boards opened
+  const boardsOpened = result.summary.stockUsed * 100;
+  return unresolved + avgWaste + boardsOpened;
+}
+
+function permutations(arr) {
+  if (arr.length <= 1) return [arr];
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+    for (const perm of permutations(rest)) {
+      result.push([arr[i], ...perm]);
+    }
+  }
+  return result;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}

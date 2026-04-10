@@ -57,6 +57,17 @@
                    placeholder='1 1/2' />
           </div>
         </div>
+        <!-- Board Feet -->
+        <div class="flex items-center justify-between text-xs text-text-muted">
+          <span>Board Feet:</span>
+          <span class="font-medium text-text-primary">
+            {{ (() => { const v = parseFraction(board.lengthStr) * parseFraction(board.widthStr) * parseFraction(board.thicknessStr) * board.qty / 144; return (!v || isNaN(v)) ? '—' : v.toFixed(2) })() }}
+          </span>
+        </div>
+      </div>
+      <!-- Mobile total -->
+      <div class="text-xs text-text-muted text-right pt-1">
+        Total: <span class="font-semibold text-text-primary">{{ totalBoardFeet }} bd ft</span>
       </div>
       <!-- Add button -->
       <button @click="store.addStock()"
@@ -76,6 +87,7 @@
             <th class="px-3 py-2 text-center font-medium w-32">Length (in)</th>
             <th class="px-3 py-2 text-center font-medium w-32">Width (in)</th>
             <th class="px-3 py-2 text-center font-medium w-32">Thickness (in)</th>
+            <th class="px-3 py-2 text-center font-medium w-20">Bd Ft</th>
             <th class="px-3 py-2 text-center font-medium w-40">Condition</th>
             <th class="px-3 py-2 w-10"></th>
           </tr>
@@ -131,6 +143,9 @@
                 placeholder='1 1/2'
               />
             </td>
+            <td class="px-3 py-1.5 text-center text-sm text-text-muted">
+              {{ (() => { const v = parseFraction(board.lengthStr) * parseFraction(board.widthStr) * parseFraction(board.thicknessStr) * board.qty / 144; return (!v || isNaN(v)) ? '—' : v.toFixed(2) })() }}
+            </td>
             <td class="px-3 py-1.5">
               <select
                 v-model="board.condition"
@@ -152,6 +167,13 @@
             </td>
           </tr>
         </tbody>
+        <tfoot>
+          <tr class="border-t-2 border-border font-semibold bg-surface-alt/60">
+            <td class="px-4 py-2 text-right text-sm text-text-muted" colspan="5">Total</td>
+            <td class="px-3 py-2 text-center text-sm text-text-primary font-bold">{{ totalBoardFeet }}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
     </div>
@@ -174,6 +196,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useProjectStore } from '@/stores/project'
+import { parseFraction } from '@/utils/fractions'
 const store = useProjectStore()
+
+const totalBoardFeet = computed(() => {
+  const total = store.stock.reduce((sum, b) => {
+    const val = parseFraction(b.lengthStr) * parseFraction(b.widthStr) * parseFraction(b.thicknessStr) * (b.qty || 1) / 144
+    return sum + (isNaN(val) ? 0 : val)
+  }, 0)
+  return total > 0 ? total.toFixed(2) : '—'
+})
 </script>

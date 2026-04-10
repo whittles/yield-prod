@@ -40,6 +40,10 @@
       </div>
     </div>
   </div>
+
+  <div v-if="summary.optimized" class="mt-2 text-xs text-text-muted">
+    ✓ Optimized across {{ summary.orderingsTried }} board orderings
+  </div>
 </template>
 
 <script setup>
