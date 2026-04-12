@@ -75,7 +75,7 @@ textarea {
 
   /* Page margin boxes for footer on every page */
   @page {
-    margin-bottom: 36pt;
+    margin-bottom: 48pt;
     @bottom-left {
       content: 'Page ' counter(page) ' of ' counter(pages);
       font-size: 8pt;
