@@ -10,6 +10,16 @@
         </tr>
       </thead>
       <tbody>
+        <!-- Resaw step row: shown once per resawn slab, before individual cut rows -->
+        <tr v-if="result.stockPiece.resawnFrom" class="bg-amber-50 border-b border-amber-200">
+          <td colspan="3" class="py-2 px-4 text-xs text-amber-800 font-medium">
+            ✂ RESAW first: Set bandsaw fence to {{ fmt(result.stockPiece.resawFenceAt) }}"
+            ({{ fmt(result.stockPiece.resawFenceAt - (store.settings.resawFaceAllowance ?? 0.0625)) }}" part +
+            {{ fmt(store.settings.resawFaceAllowance ?? 0.0625) }}" face allowance).
+            Plane resawn face to clean up.
+            Yields {{ result.stockPiece.resawTotalSlabs }} slabs from {{ result.stockPiece.resawnFromLabel }}.
+          </td>
+        </tr>
         <tr
           v-for="(cut, i) in result.cuts"
           :key="cut.partId"

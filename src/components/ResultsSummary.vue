@@ -41,6 +41,11 @@
     </div>
   </div>
 
+  <div v-if="summary.resawCount > 0" class="bg-surface border border-border rounded-lg px-4 py-3">
+    <div class="text-xs text-text-muted uppercase tracking-wide mb-1">Resaw Ops</div>
+    <div class="text-2xl font-bold text-text-primary leading-none">{{ summary.resawCount }}</div>
+  </div>
+
   <div v-if="summary.optimized" class="mt-2 text-xs text-text-muted">
     ✓ Optimized across {{ summary.orderingsTried }} board orderings
   </div>

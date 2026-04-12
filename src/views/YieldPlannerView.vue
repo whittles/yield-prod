@@ -175,6 +175,10 @@
                 {{ fmt(result.stockPiece.usableLength) }}" × {{ fmt(result.stockPiece.usableWidth) }}" × {{ fmt(result.stockPiece.usableThickness) }}"
                 <span class="italic">(usable after conditioning)</span>
               </span>
+              <div v-if="result.stockPiece.resawnFrom"
+                   class="text-xs mt-1 text-amber-700 font-medium">
+                ✂ Resawn from {{ result.stockPiece.resawnFromLabel }} — fence at {{ fmt(result.stockPiece.resawFenceAt) }}"
+              </div>
             </div>
             <div class="text-sm font-medium"
                  :class="result.utilization >= 70 ? 'text-success' : result.utilization >= 40 ? 'text-warning' : 'text-danger'">

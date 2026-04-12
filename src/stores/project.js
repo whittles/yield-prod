@@ -9,6 +9,8 @@ export const useProjectStore = defineStore('project', () => {
   const settings = ref({
     kerf: 0.125,
     planingAllowance: 0.0625,
+    allowResaw: true,
+    resawFaceAllowance: 0.0625,
     conditionAllowances: {
       'rough':       { thickness: 0.25,   width: 0.25  },
       'skip-planed': { thickness: 0.125,  width: 0.25  },
@@ -95,7 +97,7 @@ export const useProjectStore = defineStore('project', () => {
   function loadProject(data) {
     if (data.stock)    stock.value    = data.stock
     if (data.parts)    parts.value    = data.parts
-    if (data.settings) settings.value = data.settings
+    if (data.settings) settings.value = { ...settings.value, ...data.settings }
     if (data.resawStock)    resawStock.value    = data.resawStock
     if (data.resawSettings) resawSettings.value = data.resawSettings
     if (data.resawSkus)     resawSkus.value     = data.resawSkus
