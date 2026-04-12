@@ -1,6 +1,6 @@
 {
   "name": "yield-board-calculator",
-  "version": "1.0.52",
+  "version": "1.0.53",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

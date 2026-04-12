@@ -2,7 +2,7 @@
   <div class="px-5 pb-4">
     <h3 class="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Cut Instructions</h3>
     <table class="w-full text-sm">
-      <thead>
+      <thead style="display: table-header-group">
         <tr class="text-xs text-text-muted uppercase tracking-wide border-b border-border">
           <th class="text-left py-1 pr-4 font-medium w-36">Part</th>
           <th class="text-left py-1 pr-4 font-medium">Steps</th>
@@ -13,8 +13,7 @@
         <tr
           v-for="(cut, i) in result.cuts"
           :key="cut.partId"
-          :class="i % 2 === 1 ? 'bg-surface-alt/50' : ''"
-          class="border-b border-border/40 last:border-0"
+          :class="['border-b border-border/40 last:border-0 print-no-break', i % 2 === 1 ? 'bg-surface-alt/50' : '']"
         >
           <td class="py-1.5 pr-4 font-medium text-text-primary align-top">
             {{ cut.partLabel }}

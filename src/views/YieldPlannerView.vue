@@ -68,6 +68,10 @@
                 <td style="border:1px solid #ccc; padding:4pt 6pt; text-transform:capitalize;">{{ s.condition }}</td>
                 <td style="border:1px solid #ccc; padding:4pt 6pt; text-align:right; font-family:monospace;">{{ stockBoardFeet(s) }}</td>
               </tr>
+              <tr style="background:#f0f0f0; font-weight:bold;">
+                <td colspan="4" style="border:1px solid #ccc; padding:4pt 6pt; text-align:right;">Total</td>
+                <td style="border:1px solid #ccc; padding:4pt 6pt; text-align:right; font-family:monospace;">{{ totalStockBoardFeet }}</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -90,6 +94,10 @@
                 <td style="border:1px solid #ccc; padding:4pt 6pt;">{{ p.qty }}</td>
                 <td style="border:1px solid #ccc; padding:4pt 6pt; font-family:monospace;">{{ p.lengthStr }}" × {{ p.widthStr }}" × {{ p.thicknessStr }}"</td>
                 <td style="border:1px solid #ccc; padding:4pt 6pt; text-align:right; font-family:monospace;">{{ partBoardFeet(p) }}</td>
+              </tr>
+              <tr style="background:#f0f0f0; font-weight:bold;">
+                <td colspan="3" style="border:1px solid #ccc; padding:4pt 6pt; text-align:right;">Total</td>
+                <td style="border:1px solid #ccc; padding:4pt 6pt; text-align:right; font-family:monospace;">{{ totalPartsBoardFeet }}</td>
               </tr>
             </tbody>
           </table>
@@ -116,6 +124,10 @@
             </tr>
           </tbody>
         </table>
+        <!-- Print disclaimer -->
+        <div style="font-size:8pt; color:#888; font-style:italic; margin-top:6pt;">
+          ⚠ Beta: This cut plan is algorithmically generated. Verify all dimensions before cutting.
+        </div>
       </div>
 
       <!-- Screen results anchor -->
@@ -123,6 +135,11 @@
 
         <!-- Summary bar -->
         <ResultsSummary :summary="store.results.summary" />
+
+        <!-- Beta disclaimer banner (screen only) -->
+        <div class="no-print bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+          ⚠️ <strong>Beta feature</strong> — This cut plan is generated algorithmically and may not be optimal. Always verify dimensions and board assignments before cutting. Use your own judgement at the saw.
+        </div>
 
         <!-- Unresolved warning -->
         <div
@@ -141,12 +158,12 @@
 
         <!-- Per-board results -->
         <div
-          v-for="result in usedResults"
+          v-for="(result, i) in usedResults"
           :key="result.stockPiece.id"
-          class="bg-surface border border-border rounded-lg overflow-hidden"
+          :class="['bg-surface border border-border rounded-lg overflow-hidden print-break-before']"
         >
           <!-- Print-only board heading -->
-          <div class="print-only" style="font-size:11pt; font-weight:700; padding:6pt 0 4pt 0; border-bottom:1px solid #ccc; margin-bottom:4pt;">
+          <div class="print-only print-no-break" style="font-size:11pt; font-weight:700; padding:6pt 0 4pt 0; border-bottom:1px solid #ccc; margin-bottom:4pt;">
             Board: {{ result.stockPiece.label }} — {{ fmt(result.stockPiece.usableLength) }}" × {{ fmt(result.stockPiece.usableWidth) }}" × {{ fmt(result.stockPiece.usableThickness) }}" usable
           </div>
 
@@ -251,6 +268,28 @@ const usedStockEntries = computed(() => {
   if (!store.results) return []
   const usedStockIds = new Set(usedResults.value.map(r => r.stockPiece.stockId))
   return store.stock.filter(s => usedStockIds.has(s.id))
+})
+
+const totalStockBoardFeet = computed(() => {
+  const total = usedStockEntries.value.reduce((sum, s) => {
+    const l = parseFraction(s.lengthStr)
+    const w = parseFraction(s.widthStr)
+    const t = parseFraction(s.thicknessStr)
+    const bf = (l * w * t * (s.qty || 1)) / 144
+    return sum + (isNaN(bf) ? 0 : bf)
+  }, 0)
+  return total > 0 ? total.toFixed(2) + ' bf' : '—'
+})
+
+const totalPartsBoardFeet = computed(() => {
+  const total = store.parts.reduce((sum, p) => {
+    const l = parseFraction(p.lengthStr)
+    const w = parseFraction(p.widthStr)
+    const t = parseFraction(p.thicknessStr)
+    const bf = (l * w * t * (p.qty || 1)) / 144
+    return sum + (isNaN(bf) ? 0 : bf)
+  }, 0)
+  return total > 0 ? total.toFixed(2) + ' bf' : '—'
 })
 
 function stockBoardFeet(s) {

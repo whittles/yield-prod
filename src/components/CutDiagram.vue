@@ -30,9 +30,22 @@
           :fill="PART_COLORS[i % PART_COLORS.length]"
           opacity="0.85"
         />
-        <!-- Label only if rect is big enough -->
+        <!-- Label: foreignObject for tall rects (allows wrapping), plain text for short ones -->
+        <foreignObject
+          v-if="sc.w > 28 && sc.h > 28"
+          :x="sc.x + 2"
+          :y="sc.y + 2"
+          :width="sc.w - 4"
+          :height="sc.h - 4"
+        >
+          <div xmlns="http://www.w3.org/1999/xhtml"
+               style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+                      font-size:10px; font-family:Assistant,sans-serif; color:#121212;
+                      text-align:center; overflow:hidden; line-height:1.2; word-break:break-word;"
+          >{{ sc.label }}</div>
+        </foreignObject>
         <text
-          v-if="sc.w > 28 && sc.h > 12"
+          v-else-if="sc.w > 28 && sc.h > 12"
           :x="sc.x + sc.w / 2"
           :y="sc.y + sc.h / 2"
           text-anchor="middle"

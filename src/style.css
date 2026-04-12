@@ -67,8 +67,11 @@ textarea {
   .text-accent { color: #3730a3 !important; }
 
   /* Page break helpers */
-  .print-break-before { page-break-before: always; }
-  .print-no-break { page-break-inside: avoid; }
+  .print-break-before { page-break-before: always; break-before: page; }
+  .print-no-break { page-break-inside: avoid; break-inside: avoid; }
+
+  /* Remove outer card border on each board sheet */
+  .print-break-before { border: none !important; border-radius: 0 !important; box-shadow: none !important; }
 
   /* Page margin boxes for footer on every page */
   @page {
