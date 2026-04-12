@@ -76,6 +76,14 @@ textarea {
   /* Page margin boxes for footer on every page */
   @page {
     margin-bottom: 36pt;
+    @bottom-left {
+      content: 'Page ' counter(page) ' of ' counter(pages);
+      font-size: 8pt;
+      color: #888;
+      border-top: 1px solid #ddd;
+      padding-top: 4pt;
+      font-family: system-ui, sans-serif;
+    }
     @bottom-center {
       content: 'www.althoffwoodshop.com';
       font-size: 8pt;
@@ -84,10 +92,17 @@ textarea {
       padding-top: 4pt;
       font-family: system-ui, sans-serif;
     }
+    @bottom-right {
+      content: '';
+      border-top: 1px solid #ddd;
+    }
   }
 
   /* Hide the in-flow footer element — @page handles it now */
   .print-footer { display: none !important; }
+
+  /* Remove screen-only divider lines */
+  .no-print-border { border: none !important; padding-top: 0 !important; }
 }
 
 .print-only { display: none; }

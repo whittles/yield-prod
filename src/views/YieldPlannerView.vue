@@ -131,10 +131,12 @@
       </div>
 
       <!-- Screen results anchor -->
-      <div ref="resultsAnchor" class="border-t border-border pt-6 space-y-6">
+      <div ref="resultsAnchor" class="no-print-border border-t border-border pt-6 space-y-6">
 
-        <!-- Summary bar -->
-        <ResultsSummary :summary="store.results.summary" />
+        <!-- Summary bar (screen only — print header has the summary table) -->
+        <div class="no-print">
+          <ResultsSummary :summary="store.results.summary" />
+        </div>
 
         <!-- Beta disclaimer banner (screen only) -->
         <div class="no-print bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
@@ -167,8 +169,8 @@
             Board: {{ result.stockPiece.label }} — {{ fmt(result.stockPiece.usableLength) }}" × {{ fmt(result.stockPiece.usableWidth) }}" × {{ fmt(result.stockPiece.usableThickness) }}" usable
           </div>
 
-          <!-- Board header -->
-          <div class="px-5 py-3 border-b border-border bg-surface-alt flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+          <!-- Board header (screen only — print-only heading above covers this) -->
+          <div class="no-print px-5 py-3 border-b border-border bg-surface-alt flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
             <div>
               <span class="font-semibold text-text-primary">{{ result.stockPiece.label }}</span>
               <span class="ml-2 text-sm text-text-muted">
