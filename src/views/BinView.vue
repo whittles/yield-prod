@@ -143,6 +143,11 @@
     <!-- ── Results ─────────────────────────────────────────────────── -->
     <template v-if="result">
 
+      <!-- Beta disclaimer -->
+      <div class="no-print bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+        ⚠️ <strong>Beta feature</strong> — This cut plan is generated algorithmically and may not be optimal. Always verify dimensions before cutting. Use your own judgement at the saw.
+      </div>
+
       <!-- Summary -->
       <div class="bg-surface border border-border rounded-lg p-5">
         <h2 class="text-base font-semibold text-text-primary mb-3">Box Summary</h2>

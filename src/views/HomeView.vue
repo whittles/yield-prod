@@ -48,6 +48,11 @@
         <div class="mt-3 text-xs text-accent font-medium">Open →</div>
       </button></div>
 
+    <!-- Beta notice -->
+    <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
+      ⚠️ <strong>Beta:</strong> These tools are actively being developed. Results are algorithmically generated — always verify dimensions and cut plans before cutting. <a href="https://althoffwoodshop.com/pages/contact" target="_blank" rel="noopener" class="underline hover:opacity-80">Send feedback →</a>
+    </div>
+
     <!-- Quick tips -->
     <div class="bg-surface border border-border rounded-xl p-5 space-y-3">
       <h2 class="text-sm font-semibold text-text-primary">Quick tips</h2>

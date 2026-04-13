@@ -353,6 +353,11 @@
     <!-- ── Results ─────────────────────────────────────────────────── -->
     <template v-if="r">
 
+      <!-- Beta disclaimer -->
+      <div class="no-print bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+        ⚠️ <strong>Beta feature</strong> — This yield plan is generated algorithmically and may not be optimal. Always verify dimensions before cutting. Use your own judgement at the saw.
+      </div>
+
       <!-- ── Print header (full batch summary) ─────────────────────── -->
       <div class="print-only print-no-break mb-6">
         <!-- Logo + title row -->
