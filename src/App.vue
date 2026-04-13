@@ -5,7 +5,7 @@
     <header class="bg-header text-white no-print">
       <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
         <!-- Brand -->
-        <div class="flex items-center gap-3">
+        <a href="https://althoffwoodshop.com" class="flex items-center gap-3 no-underline hover:opacity-80 transition-opacity">
           <img
             src="/logo.png"
             alt="Althoff Woodshop logo"
@@ -15,7 +15,7 @@
             <div class="font-semibold text-base leading-tight tracking-wide">Althoff Woodshop</div>
             <div class="text-xs text-gray-400 leading-tight">Board Yield Calculator</div>
           </div>
-        </div>
+        </a>
 
         <!-- Actions -->
         <div class="flex items-center gap-2">
